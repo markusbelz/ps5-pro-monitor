@@ -10,6 +10,16 @@ Watches retailer product pages for a **new Sony PlayStation 5 Pro (2 TB, EU plug
 > been sent from this code. See [Supported retailers](#3-supported-retailers-and-known-limitations).
 > Run the manual dry-run (section 10) first and see which retailers actually return data.
 
+## Live findings (2026-10-30, first dry-run on GitHub-hosted runners)
+
+| Retailer | Result |
+|---|---|
+| MediaMarkt, Saturn | `HTTP 403`: automated access from GitHub's IPs is refused. Not worked around. |
+| PlayStation Direct DE | The product URL redirects to `www.playstation.com/de-de/ps5/ps5-pro/buy-now/` (a retailer overview), not a product page. |
+| Expert | Page loads (1.5 MB) but only `Organization`/`WebSite` JSON-LD, no product data (probably rendered client-side). |
+
+The scheduled trigger in `monitor.yml` is therefore **commented out**. Manual runs (`workflow_dispatch`) still work.
+
 ## 1. What it does
 
 1. Fetches each configured product page (polite, identifies itself, honours `robots.txt`, bounded retries).
