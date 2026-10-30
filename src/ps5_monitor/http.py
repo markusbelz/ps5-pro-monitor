@@ -77,7 +77,8 @@ class Fetcher:
         current = url
         for _ in range(MAX_REDIRECTS + 1):
             if not host_allowed(current, allowed_hosts):
-                raise Blocked(f"refusing to request non-allowed URL host: {urlsplit(current).hostname}")
+                target = urlsplit(current)
+                raise Blocked(f"refusing to request non-allowed URL: {target.hostname}{target.path[:80]}")
             if self._respect_robots and not self._robots_allows(current):
                 raise Blocked("robots.txt disallows this URL")
             response = self._request(current)

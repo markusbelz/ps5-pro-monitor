@@ -65,7 +65,7 @@ def test_redirect_to_other_host_is_refused():
     def handler(req):
         return httpx.Response(302, headers={"location": "https://evil.example.com/x"})
 
-    with pytest.raises(Blocked, match="non-allowed"):
+    with pytest.raises(Blocked, match=r"non-allowed URL: evil\.example\.com/x"):
         fetcher(handler).get(PS_URL, HOSTS)
 
 

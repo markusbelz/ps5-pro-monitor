@@ -11,7 +11,7 @@ from typing import ClassVar
 from ..config import RetailerConfig
 from ..http import Blocked, FetchError, Fetcher
 from ..models import Offer, Outcome, RetailerResult
-from .jsonld import looks_blocked, parse_product_page
+from .jsonld import describe_page, looks_blocked, parse_product_page
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +49,9 @@ class Retailer(ABC):
             if looks_blocked(html):
                 return RetailerResult(outcome=Outcome.BLOCKED, error="bot-protection page detected", **base)
             return RetailerResult(
-                outcome=Outcome.NO_DATA, error="no product data found (page layout may have changed)", **base
+                outcome=Outcome.NO_DATA,
+                error=f"no product data found (layout changed or JS-rendered?); {describe_page(html)}",
+                **base,
             )
         offers = [self._apply_configured_shipping(o) for o in offers]
         return RetailerResult(outcome=Outcome.OK, offers=offers, **base)

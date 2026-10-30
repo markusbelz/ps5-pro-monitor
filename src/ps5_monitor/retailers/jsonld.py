@@ -160,3 +160,31 @@ def parse_product_page(html: str, url: str, *, retailer: str, retailer_name: str
             )
     return offers
 
+
+
+def describe_page(html: str) -> str:
+    """Short, secret-free summary of a page that yielded no offers (for troubleshooting)."""
+    soup = BeautifulSoup(html, "html.parser")
+    title = (soup.title.get_text(strip=True) if soup.title else "")[:80]
+    ld_types: list[str] = []
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            data = json.loads(script.string or script.get_text() or "")
+        except (ValueError, TypeError):
+            ld_types.append("invalid-json")
+            continue
+        ld_types.extend(
+            ",".join(_last_segment(t) for t in _as_list(n.get("@type"))) or "?" for n in _walk(data)
+        )
+    meta = sorted(
+        {
+            m.get("property") or m.get("name")
+            for m in soup.find_all("meta")
+            if (m.get("property") or m.get("name") or "").startswith(("product:", "og:price", "og:availability"))
+        }
+    )
+    microdata = len(soup.find_all(attrs={"itemprop": "price"}))
+    return (
+        f"page title={title!r}, bytes={len(html)}, ld+json types={ld_types[:8]}, "
+        f"price/availability meta={meta[:6]}, itemprop=price x{microdata}"
+    )

@@ -71,3 +71,8 @@ def test_amazon_is_an_unsupported_placeholder():
     fetcher = Fetcher(httpx.Client(transport=httpx.MockTransport(lambda r: pytest.fail("must not fetch"))))
     result = REGISTRY["amazon"](cfg).check(fetcher, NOW)
     assert result.outcome is Outcome.UNSUPPORTED and "not implemented" in result.error.lower()
+
+
+def test_no_data_error_contains_diagnostics():
+    result = check("playstation_direct", PS_URL, fixture("no_jsonld.html"))
+    assert "page title='Layout changed'" in result.error and "ld+json types=[]" in result.error
