@@ -1,0 +1,91 @@
+name: Monitor PS5 Pro
+
+on:
+  schedule:
+    # Best effort only: GitHub may delay or skip scheduled runs, especially at busy times.
+    # Do not rely on exact spacing. See README for quota implications.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "run = real check, dry-run = check without notifying or saving, test-notify = Telegram test, health = send health summary"
+        type: choice
+        options: [run, dry-run, test-notify, health]
+        default: run
+
+# Never two runs at the same time (they would race on the state branch).
+concurrency:
+  group: ps5-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: write # needed only to update the "state" branch
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      MODE: ${{ github.event.inputs.mode || 'run' }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      MAX_PRICE_EUR: ${{ vars.MAX_PRICE_EUR || '999.99' }}
+      HEALTH_SUMMARY: ${{ vars.HEALTH_SUMMARY || 'false' }}
+      DB_PATH: state/ps5_monitor.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          pip install -e . --no-deps
+
+      - name: Restore state from the "state" branch
+        run: |
+          mkdir -p state
+          if git ls-remote --exit-code --heads origin state >/dev/null 2>&1; then
+            git fetch --depth=1 origin state
+            git show FETCH_HEAD:ps5_monitor.db > state/ps5_monitor.db
+            echo "State restored."
+          else
+            echo "No state branch yet (first run): starting with an empty database."
+          fi
+
+      - name: Run monitor
+        id: monitor
+        continue-on-error: true # the state must still be saved when the run reports a failure
+        run: |
+          case "$MODE" in
+            dry-run) python -m ps5_monitor run --dry-run ;;
+            run|test-notify|health) python -m ps5_monitor "$MODE" ;;
+            *) echo "unknown mode: $MODE"; exit 2 ;;
+          esac
+
+      - name: Save state to the "state" branch
+        if: ${{ always() && (env.MODE == 'run' || env.MODE == 'health') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f state/ps5_monitor.db ]; then echo "No database to save."; exit 0; fi
+          tmp="$(mktemp -d)"
+          cp state/ps5_monitor.db "$tmp/ps5_monitor.db"
+          cd "$tmp"
+          git init -q -b state
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ps5_monitor.db
+          git commit -q -m "state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # A single orphan commit that is force-pushed every time: no history growth, no secrets inside.
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" state
+
+      - name: Report result
+        if: ${{ steps.monitor.outcome == 'failure' }}
+        run: |
+          echo "::error::Monitor run failed (all retailers failed, Telegram failed, or invalid configuration). See the 'Run monitor' step."
+          exit 1

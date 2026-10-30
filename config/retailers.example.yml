@@ -1,0 +1,36 @@
+# Copy to config/retailers.yml, fill in the exact product URLs and enable what you want.
+# Product URLs are never guessed by this tool: open the product page yourself and paste the URL.
+# Product URLs are not secret, so config/retailers.yml can be committed.
+retailers:
+  playstation_direct:
+    enabled: false
+    url: ""                 # e.g. the https://direct.playstation.com/de-de/... page of the PS5 Pro 2 TB
+    shipping_eur: null      # set only if the page does not state shipping, e.g. 0 or 4.99
+    allow_third_party: false
+    trusted_sellers: []     # extra seller names to accept, exactly as shown in the page data
+
+  mediamarkt:
+    enabled: false
+    url: ""
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  saturn:
+    enabled: false
+    url: ""
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  expert:
+    enabled: false
+    url: ""
+    shipping_eur: null
+    allow_third_party: false
+    # Without a trusted seller every Expert offer stays UNVERIFIED (no alert).
+    trusted_sellers: []     # e.g. ["expert Technomarkt Musterstadt"]
+
+  amazon:                   # placeholder adapter, nothing is checked (see README)
+    enabled: false
+    url: ""

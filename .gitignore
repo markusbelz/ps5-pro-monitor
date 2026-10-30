@@ -1,0 +1,26 @@
+# secrets / local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# local state (lives on the "state" branch in GitHub Actions, never on main)
+state/
+*.db
+*.sqlite
+*.sqlite3
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+# editors / OS
+.vscode/
+.idea/
+.DS_Store

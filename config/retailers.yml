@@ -1,0 +1,34 @@
+# Product URLs found via web search on 2026-10-30. NOT yet validated against the live pages:
+# run the workflow with mode=dry-run and check which retailers return OK.
+retailers:
+  playstation_direct:
+    enabled: true
+    url: "https://direct.playstation.com/de-de/buy-consoles/playstation5-pro-console-2-tb"
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  mediamarkt:
+    enabled: true
+    url: "https://www.mediamarkt.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  saturn:
+    enabled: true
+    url: "https://www.saturn.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  expert:
+    enabled: true   # stays UNVERIFIED (no alert) until the real seller name is in trusted_sellers
+    url: "https://www.expert.de/shop/unsere-produkte/gaming-freizeit/sony-playstation/playstation-konsolen/11364201744-playstation-5-pro.html"
+    shipping_eur: null
+    allow_third_party: false
+    trusted_sellers: []
+
+  amazon:
+    enabled: false
+    url: ""
