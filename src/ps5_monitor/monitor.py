@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Callable
 
-from .config import RetailerConfig, Settings
+from .config import RetailerConfig, Settings, WatcherConfig
 from .evaluate import evaluate
 from .http import Fetcher
 from .models import Evaluation, Offer, Outcome, RetailerResult, Verdict
 from .notifier import BERLIN, NotificationError, Notifier, berlin_time, euro
 from .retailers import Retailer
 from .storage import OfferState, Storage, offer_key
+from .watcher import WatchResult, check_watcher, load_state, state_key
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ def utcnow() -> datetime:
 @dataclass
 class RunSummary:
     results: list[RetailerResult] = field(default_factory=list)
+    watch_results: list[WatchResult] = field(default_factory=list)
     offers_seen: int = 0
     qualifying: int = 0
     notified: int = 0
@@ -37,7 +40,7 @@ class RunSummary:
     @property
     def monitoring_failed(self) -> bool:
         """True when no retailer could be checked successfully: 'no offers' would be a lie."""
-        checked = [r for r in self.results if r.outcome in COUNTED_OUTCOMES]
+        checked = [r for r in [*self.results, *self.watch_results] if r.outcome in COUNTED_OUTCOMES]
         return not checked or all(r.outcome is not Outcome.OK for r in checked)
 
     @property
@@ -49,6 +52,9 @@ class RunSummary:
         for r in self.results:
             detail = f" - {r.error}" if r.error else ""
             out.append(f"{r.retailer_name}: {r.outcome.value} ({len(r.offers)} offers){detail}")
+        for w in self.watch_results:
+            detail = w.detail if w.outcome is Outcome.OK else (w.error or "")
+            out.append(f"[watcher] {w.name}: {w.outcome.value} - {detail}")
         out.append(
             f"offers seen={self.offers_seen} qualifying={self.qualifying} "
             f"notified={self.notified} notify_failures={self.notify_failures}"
@@ -85,7 +91,9 @@ class Monitor:
         storage: Storage,
         notifier: Notifier | None,
         clock: Callable[[], datetime] = utcnow,
+        watchers: list[WatcherConfig] | None = None,
     ):
+        self.watchers = watchers or []
         self.settings = settings
         self.retailers = retailers
         self.fetcher = fetcher
@@ -108,9 +116,40 @@ class Monitor:
                 self.storage.record_retailer(result, now)
             for offer in result.offers:
                 self._handle_offer(offer, retailer.cfg, summary, dry_run)
+        for watcher in self.watchers:
+            self._handle_watcher(watcher, summary, dry_run)
         if not dry_run:
             self.storage.prune_history(self.clock())
         return summary
+
+    def _handle_watcher(self, cfg: WatcherConfig, summary: RunSummary, dry_run: bool) -> None:
+        now = self.clock()
+        prev = load_state(self.storage.get_meta(state_key(cfg)))
+        result = check_watcher(cfg, self.fetcher, prev, now)
+        summary.watch_results.append(result)
+        log.info("watcher checked", extra={"watcher": cfg.name, "outcome": result.outcome.value,
+                                           "detail": result.detail, "error": result.error or ""})
+        if not dry_run:
+            self.storage.record_retailer(
+                RetailerResult(retailer=f"watch:{cfg.name}", retailer_name=cfg.name,
+                               outcome=result.outcome, error=result.error or result.detail), now)
+        if result.outcome is not Outcome.OK or result.new_state is None:
+            return
+        if result.alert and dry_run:
+            summary.would_notify += 1
+            return
+        if dry_run:
+            return
+        if result.alert and self.notifier is not None:
+            try:
+                self.notifier.send_text(result.alert)
+                summary.notified += 1
+                log.info("watcher notification sent", extra={"watcher": cfg.name})
+            except NotificationError as exc:
+                summary.notify_failures += 1
+                log.error("watcher notification failed", extra={"error": str(exc), "watcher": cfg.name})
+                return  # state NOT saved, so the alert is retried on the next run
+        self.storage.set_meta(state_key(cfg), json.dumps(result.new_state))
 
     def _handle_offer(self, offer: Offer, cfg: RetailerConfig, summary: RunSummary, dry_run: bool) -> None:
         summary.offers_seen += 1

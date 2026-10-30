@@ -1,34 +1,28 @@
-# Product URLs found via web search on 2026-10-30. NOT yet validated against the live pages:
-# run the workflow with mode=dry-run and check which retailers return OK.
+# Retailer pages checked on 2026-10-30 from GitHub-hosted runners:
+#   mediamarkt / saturn -> HTTP 403 (automated access refused; never worked around)
+#   playstation_direct  -> redirected to a retailer overview page; covered by the watchers below
+#   expert              -> no product data in the page (client-side rendered)
+# They stay disabled so the monitor does not hit them every run for nothing.
 retailers:
-  playstation_direct:
-    enabled: true
+  playstation_direct: {enabled: false, url: "https://direct.playstation.com/de-de/buy-consoles/playstation5-pro-console-2-tb"}
+  mediamarkt: {enabled: false, url: "https://www.mediamarkt.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"}
+  saturn: {enabled: false, url: "https://www.saturn.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"}
+  expert: {enabled: false, url: "https://www.expert.de/shop/unsere-produkte/gaming-freizeit/sony-playstation/playstation-konsolen/11364201744-playstation-5-pro.html"}
+  amazon: {enabled: false, url: ""}
+
+# Official Sony pages. While the PS5 Pro 2 TB is not purchasable they show a notice like
+# "Derzeit nicht vorrätig". When it is gone you get an early (unverified) Telegram heads-up.
+watchers:
+  - name: "PlayStation Direct DE - PS5 Pro 2 TB"
     url: "https://direct.playstation.com/de-de/buy-consoles/playstation5-pro-console-2-tb"
-    shipping_eur: null
-    allow_third_party: false
-    trusted_sellers: []
-
-  mediamarkt:
-    enabled: true
-    url: "https://www.mediamarkt.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"
-    shipping_eur: null
-    allow_third_party: false
-    trusted_sellers: []
-
-  saturn:
-    enabled: true
-    url: "https://www.saturn.de/de/product/_sony-playstationr5-pro-2-tb-konsole-3018022.html"
-    shipping_eur: null
-    allow_third_party: false
-    trusted_sellers: []
-
-  expert:
-    enabled: true   # stays UNVERIFIED (no alert) until the real seller name is in trusted_sellers
-    url: "https://www.expert.de/shop/unsere-produkte/gaming-freizeit/sony-playstation/playstation-konsolen/11364201744-playstation-5-pro.html"
-    shipping_eur: null
-    allow_third_party: false
-    trusted_sellers: []
-
-  amazon:
-    enabled: false
-    url: ""
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    unavailable_phrases:
+      - "derzeit nicht vorrätig"
+      - "zurzeit nicht verfügbar"
+      - "sie können diese artikel derzeit nicht kaufen"
+  - name: "PlayStation.com DE - PS5 Pro Kaufseite"
+    url: "https://www.playstation.com/de-de/ps5/ps5-pro/buy-now/"
+    allowed_hosts: ["playstation.com", "direct.playstation.com"]
+    unavailable_phrases:
+      - "nicht zum kauf erhältlich"
+      - "derzeit nicht vorrätig"

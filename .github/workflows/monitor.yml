@@ -1,10 +1,10 @@
 name: Monitor PS5 Pro
 
 on:
-  # Schedule paused: from GitHub-hosted runners MediaMarkt/Saturn answer 403 and the other pages
-  # carry no usable product data (see README, "Live findings"). Re-enable once a source works:
-  # schedule:
-  #   - cron: "*/30 * * * *"
+  schedule:
+    # Best effort only: GitHub may delay or skip scheduled runs, especially at busy times.
+    # Do not rely on exact spacing. Public repo = free minutes; see README for private repos.
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       mode:

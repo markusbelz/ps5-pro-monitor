@@ -10,15 +10,25 @@ Watches retailer product pages for a **new Sony PlayStation 5 Pro (2 TB, EU plug
 > been sent from this code. See [Supported retailers](#3-supported-retailers-and-known-limitations).
 > Run the manual dry-run (section 10) first and see which retailers actually return data.
 
-## Live findings (2026-10-30, first dry-run on GitHub-hosted runners)
+## Watchers for official pages (main mechanism right now)
 
-| Retailer | Result |
-|---|---|
-| MediaMarkt, Saturn | `HTTP 403`: automated access from GitHub's IPs is refused. Not worked around. |
-| PlayStation Direct DE | The product URL redirects to `www.playstation.com/de-de/ps5/ps5-pro/buy-now/` (a retailer overview), not a product page. |
-| Expert | Page loads (1.5 MB) but only `Organization`/`WebSite` JSON-LD, no product data (probably rendered client-side). |
+From GitHub-hosted runners the retailer pages cannot be used (first dry-run on 2026-10-30): MediaMarkt/Saturn answer
+`HTTP 403` (not worked around), Expert has no product data in its HTML, and PlayStation Direct redirects to a retailer
+overview. So `config/retailers.yml` watches **two official Sony pages** instead (section `watchers:`):
 
-The scheduled trigger in `monitor.yml` is therefore **commented out**. Manual runs (`workflow_dispatch`) still work.
+* `direct.playstation.com/de-de/buy-consoles/playstation5-pro-console-2-tb` (PS5 Pro 2 TB, listed at €899.99, currently "Zurzeit nicht verfügbar / Derzeit nicht vorrätig")
+* `www.playstation.com/de-de/ps5/ps5-pro/buy-now/` ("Nicht zum Kauf erhältlich")
+
+Each run the visible page text is checked for the configured "unavailable" phrases. When they **disappear**, you get a
+Telegram message *"PS5 PRO: POSSIBLY AVAILABLE (unverified heads-up)"* with the link. Rules:
+
+* This is an early signal only: price, stock and seller are **not** verified, the message says so.
+* Going back to "unavailable" is silent; the next restock alerts again. No repeats while the state is unchanged.
+* Empty/broken pages, HTTP errors and 403 never alert and never overwrite the saved state.
+* If the notice is not on the page at the very first check, you get one heads-up ("either purchasable now or the notice is not visible to the monitor"). The dry-run output shows which phrases were found (`phrases=[...]`); if none are found although the page shows the notice, the text is probably rendered by JavaScript and this watcher cannot see it.
+* Phrases are matched against visible text only (scripts/styles ignored). Add watchers for other official pages with `name`, `url`, `allowed_hosts`, `unavailable_phrases`.
+
+The retailer adapters below remain in the code but are disabled in the shipped config.
 
 ## 1. What it does
 
@@ -144,9 +154,9 @@ gh variable set HEALTH_SUMMARY --body false          # optional daily health mes
    git add config/retailers.yml && git commit -m "Configure retailers" && git push
    ```
 2. In the repo go to the **Actions** tab and enable workflows if GitHub asks.
-3. Trigger one manual run first (section 10). The schedule (`*/30 * * * *`, every 30 minutes) then runs on its own.
+3. Trigger one manual run first (section 10). The schedule (`*/15 * * * *`, every 15 minutes) then runs on its own.
 
-**Do not expect exact intervals.** GitHub schedules are best effort and are often delayed or skipped under load (the minimum cron interval is 5 minutes; this repo uses 30 to stay polite and cheap). Alerts can therefore arrive late. For a scarce item this is the main limit of this setup.
+**Do not expect exact intervals.** GitHub schedules are best effort and are often delayed or skipped under load (the minimum cron interval is 5 minutes; this repo uses 15 to stay polite). Alerts can therefore arrive late. For a scarce item this is the main limit of this setup.
 Scheduled workflows in **public repos are disabled after 60 days without repository activity**; push a commit or re-enable in the Actions tab if that happens.
 
 ## 9. Run locally
@@ -226,7 +236,7 @@ Reset on purpose: `git push origin --delete state`.
 ## 16. Costs and GitHub Actions limits
 
 * The software and Telegram are free. GitHub Actions on **public** repositories with standard runners is free.
-* On **private** repositories the free plan includes a limited monthly minute quota (check GitHub's current billing docs; 2,000 min/month at time of writing). Every run bills at least one minute, so a 5‑minute schedule (~8,600 runs/month) would exhaust it. The default here is `*/30 * * * *` (~1,450 runs/month), which fits a private repo too; edit `monitor.yml` to change it.
+* On **private** repositories the free plan includes a limited monthly minute quota (check GitHub's current billing docs; 2,000 min/month at time of writing). Every run bills at least one minute, so a 5‑minute schedule (~8,600 runs/month) would exhaust it. The default here is `*/15 * * * *` (~2,900 runs/month): free on a public repo, too many for a private one (use `*/30` or slower there).
 * Each run is capped at 5 minutes (`timeout-minutes`). HTTP retries are bounded (3 attempts, exponential backoff).
 
 ## Security notes

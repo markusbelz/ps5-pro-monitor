@@ -49,6 +49,16 @@ class RetailerConfig:
     accepted_sellers: tuple[str, ...] = ()  # adapter defaults + trusted_sellers
 
 
+@dataclass(frozen=True)
+class WatcherConfig:
+    """An official page that is watched for its 'currently unavailable' notice to disappear."""
+
+    name: str
+    url: str
+    allowed_hosts: tuple[str, ...]  # hosts this page (and its redirects) may use
+    unavailable_phrases: tuple[str, ...]  # lower-case phrases shown while the product is unavailable
+
+
 def _bool(raw: str | None, default: bool) -> bool:
     if raw is None or raw.strip() == "":
         return default
@@ -144,16 +154,21 @@ def load_settings(env: Mapping[str, str] | None = None, *, require_telegram: boo
     )
 
 
-def parse_retailers(data: object) -> list[RetailerConfig]:
+def parse_retailers(data: object, *, allow_empty: bool = False) -> list[RetailerConfig]:
     """Validate the YAML structure. Only enabled retailers are returned."""
     from .retailers import REGISTRY  # local import: avoids a cycle with retailers.base
 
     problems: list[str] = []
-    if not isinstance(data, dict) or not isinstance(data.get("retailers"), dict):
+    if not isinstance(data, dict):
+        raise ConfigError(["config must be a YAML mapping with 'retailers:' and/or 'watchers:'"])
+    retailers_raw = data.get("retailers")
+    if retailers_raw is None and allow_empty:
+        retailers_raw = {}
+    if not isinstance(retailers_raw, dict):
         raise ConfigError(["retailers config must contain a 'retailers:' mapping"])
 
     result: list[RetailerConfig] = []
-    for key, raw in data["retailers"].items():
+    for key, raw in retailers_raw.items():
         if key not in REGISTRY:
             problems.append(f"unknown retailer '{key}' (known: {', '.join(sorted(REGISTRY))})")
             continue
@@ -201,9 +216,66 @@ def parse_retailers(data: object) -> list[RetailerConfig]:
         )
     if problems:
         raise ConfigError(problems)
-    if not result:
+    if not result and not allow_empty:
         raise ConfigError(["no retailer is enabled; set 'enabled: true' and a 'url' in the retailers config"])
     return result
+
+
+def parse_watchers(data: object) -> list[WatcherConfig]:
+    raw_list = data.get("watchers") if isinstance(data, dict) else None
+    if raw_list is None:
+        return []
+    problems: list[str] = []
+    result: list[WatcherConfig] = []
+    if not isinstance(raw_list, list):
+        raise ConfigError(["'watchers:' must be a list"])
+    for i, raw in enumerate(raw_list):
+        if not isinstance(raw, dict):
+            problems.append(f"watcher #{i + 1} must be a mapping")
+            continue
+        if not raw.get("enabled", True):
+            continue
+        name = str(raw.get("name") or f"watcher-{i + 1}")
+        url = str(raw.get("url") or "").strip()
+        hosts = raw.get("allowed_hosts")
+        phrases = raw.get("unavailable_phrases")
+        parts = urlsplit(url)
+        if parts.scheme != "https" or parts.username or not parts.hostname:
+            problems.append(f"watcher '{name}': url must be an https URL")
+            continue
+        if not isinstance(hosts, list) or not hosts or not all(isinstance(h, str) and h for h in hosts):
+            problems.append(f"watcher '{name}': allowed_hosts must be a non-empty list of host names")
+            continue
+        if not any(parts.hostname == h or parts.hostname.endswith("." + h) for h in hosts):
+            problems.append(f"watcher '{name}': url host is not covered by allowed_hosts")
+            continue
+        if not isinstance(phrases, list) or not phrases or not all(isinstance(p, str) and p.strip() for p in phrases):
+            problems.append(f"watcher '{name}': unavailable_phrases must be a non-empty list of texts")
+            continue
+        result.append(
+            WatcherConfig(
+                name=name, url=url, allowed_hosts=tuple(hosts),
+                unavailable_phrases=tuple(" ".join(p.lower().split()) for p in phrases),
+            )
+        )
+    if problems:
+        raise ConfigError(problems)
+    return result
+
+
+def load_config(path: Path) -> tuple[list[RetailerConfig], list[WatcherConfig]]:
+    """Retailers and watchers from the YAML file; at least one of them must be enabled."""
+    if not path.exists():
+        raise ConfigError([f"retailers config not found: {path} (copy config/retailers.example.yml)"])
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise ConfigError([f"retailers config is not valid YAML: {exc}"]) from exc
+    retailers = parse_retailers(data, allow_empty=True)
+    watchers = parse_watchers(data)
+    if not retailers and not watchers:
+        raise ConfigError(["nothing is enabled; enable a retailer or a watcher in the config"])
+    return retailers, watchers
 
 
 def load_retailers(path: Path) -> list[RetailerConfig]:

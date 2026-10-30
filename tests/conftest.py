@@ -88,9 +88,9 @@ class Web:
         return httpx.Response(200, text=page)
 
 
-def build_monitor(tmp_path, settings, web: Web, configs, notifier, *, db=None, clock=None, sleeps=None):
+def build_monitor(tmp_path, settings, web: Web, configs, notifier, *, db=None, clock=None, sleeps=None, watchers=None):
     client = httpx.Client(transport=httpx.MockTransport(web.handler))
     fetcher = Fetcher(client, max_attempts=3, respect_robots=False, sleep=(sleeps.append if sleeps is not None else lambda s: None))
     storage = Storage(db or tmp_path / "state.db")
     retailers = [REGISTRY[c.key](c) for c in configs]
-    return Monitor(settings, retailers, fetcher, storage, notifier, clock=clock or (lambda: NOW))
+    return Monitor(settings, retailers, fetcher, storage, notifier, clock=clock or (lambda: NOW), watchers=watchers)

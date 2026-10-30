@@ -6,7 +6,7 @@ import argparse
 import logging
 import sys
 
-from .config import ConfigError, Settings, load_retailers, load_settings
+from .config import ConfigError, Settings, load_config, load_settings
 from .http import Fetcher, make_client
 from .logging_config import register_secret, setup_logging
 from .monitor import Monitor
@@ -60,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        configs = load_retailers(settings.retailers_config)
+        configs, watchers = load_config(settings.retailers_config)
     except ConfigError as exc:
         for problem in exc.problems:
             log.error("configuration error: %s", problem)
@@ -72,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
             cls = REGISTRY[cfg.key]
             state = "implemented, needs live validation" if not cls.live_validated else "validated"
             print(f"- {cfg.key}: {cfg.url} [{state}]")
+        for w in watchers:
+            print(f"- watcher {w.name}: {w.url} (alerts when {len(w.unavailable_phrases)} 'unavailable' notice(s) vanish)")
         return 0
 
     retailers = [REGISTRY[cfg.key](cfg) for cfg in configs]
@@ -84,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         fetcher = Fetcher(client, max_attempts=settings.http_max_retries, respect_robots=settings.respect_robots)
         notifier = _notifier(settings) if settings.telegram_token and settings.telegram_chat_id else None
-        monitor = Monitor(settings, retailers, fetcher, storage, notifier)
+        monitor = Monitor(settings, retailers, fetcher, storage, notifier, watchers=watchers)
 
         if args.command == "health":
             try:

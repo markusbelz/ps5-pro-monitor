@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import dataclass
 from typing import Callable
 from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
@@ -56,6 +57,12 @@ def make_client(timeout: float) -> httpx.Client:
     )
 
 
+@dataclass(frozen=True)
+class Page:
+    final_url: str
+    text: str
+
+
 class Fetcher:
     def __init__(
         self,
@@ -74,6 +81,9 @@ class Fetcher:
         self._robots: dict[str, RobotFileParser | None] = {}
 
     def get(self, url: str, allowed_hosts: tuple[str, ...]) -> str:
+        return self.fetch(url, allowed_hosts).text
+
+    def fetch(self, url: str, allowed_hosts: tuple[str, ...]) -> Page:
         current = url
         for _ in range(MAX_REDIRECTS + 1):
             if not host_allowed(current, allowed_hosts):
@@ -96,7 +106,7 @@ class Fetcher:
                 raise FetchError(f"HTTP {response.status_code}")
             if len(response.content) > MAX_BODY_BYTES:
                 raise FetchError("response too large")
-            return response.text
+            return Page(final_url=current, text=response.text)
         raise FetchError("too many redirects")
 
     def _request(self, url: str) -> httpx.Response:
