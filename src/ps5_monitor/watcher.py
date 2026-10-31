@@ -46,7 +46,7 @@ def visible_text(html: str) -> str:
 _HINT = re.compile(
     r"niet beschikbaar|niet op voorraad|uitverkocht|voorraad|binnenkort|beschikbaar|ikke på lager|udsolgt|"
     r"ikke tilgængelig|tilgængelig|nicht (?:zum kauf )?(?:erhältlich|verfügbar|vorrätig)|vorrätig|ausverkauft|"
-    r"indisponible|rupture|épuisé|non disponibile|esaurito|no disponible|agotado|"
+    r"indisponible|rupture|épuisé|non disponibile|esaurito|no disponible|agotado|indispon[ií]vel|esgotado|n[ãa]o dispon[ií]vel|"
     r"not available|unavailable|out of stock|sold out|coming soon"
 )
 

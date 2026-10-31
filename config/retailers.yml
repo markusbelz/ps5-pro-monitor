@@ -80,10 +80,9 @@ watchers:
     alert_on_first_check: false
     note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
     unavailable_phrases:
+      - "agotado temporalmente"
+      - "no disponible para comprar"
       - "no disponible actualmente"
-      - "actualmente no disponible"
-      - "no disponible para la compra"
-      - "agotado"
       - "sin existencias"
   - name: "PlayStation Direct AT - PS5 Pro 2 TB"
     url: "https://direct.playstation.com/de-at/buy-consoles/playstation5-pro-console-2-tb"
