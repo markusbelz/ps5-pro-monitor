@@ -26,3 +26,34 @@ watchers:
     unavailable_phrases:
       - "nicht zum kauf erhältlich"
       - "derzeit nicht vorrätig"
+
+  # --- Netherlands (family): PlayStation Direct NL ships to Dutch addresses only and needs a sign-in.
+  # The 2 TB page redirects to the NL buy-now page while unavailable (same pattern as Germany).
+  # Dutch notice texts below are only partly verified: check the dry-run output ("hints=") and adjust.
+  - name: "PlayStation Direct NL - PS5 Pro (overzicht)"
+    url: "https://direct.playstation.com/nl-nl/buy-consoles/playstation5-pro-console"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    unavailable_phrases:
+      - "momenteel niet beschikbaar"
+      - "komt binnenkort"
+  - name: "PlayStation Direct NL - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/nl-nl/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    unavailable_phrases:
+      - "momenteel niet beschikbaar"
+      - "niet beschikbaar voor aankoop"
+      - "momenteel niet op voorraad"
+      - "niet op voorraad"
+      - "komt binnenkort"
+  - name: "PlayStation.com NL - PS5 Pro Kaufseite"
+    url: "https://www.playstation.com/nl-nl/ps5/ps5-pro/buy-now/"
+    allowed_hosts: ["playstation.com", "direct.playstation.com"]
+    alert_on_first_check: false
+    unavailable_phrases:
+      - "momenteel niet beschikbaar"
+      - "niet beschikbaar voor aankoop"
+      - "momenteel niet op voorraad"
+      - "niet op voorraad"
+      - "komt binnenkort"

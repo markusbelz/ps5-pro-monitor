@@ -28,6 +28,13 @@ Telegram message *"PS5 PRO: POSSIBLY AVAILABLE (unverified heads-up)"* with the 
 * If the notice is not on the page at the very first check, you get one heads-up ("either purchasable now or the notice is not visible to the monitor"). The dry-run output shows which phrases were found (`phrases=[...]`); if none are found although the page shows the notice, the text is probably rendered by JavaScript and this watcher cannot see it.
 * Phrases are matched against visible text only (scripts/styles ignored). Add watchers for other official pages with `name`, `url`, `allowed_hosts`, `unavailable_phrases`.
 
+**Other countries.** Stock is separate per country. The config also watches PlayStation Direct and the Sony buy-now page for the
+Netherlands (`nl-nl`). Direct NL ships to Dutch addresses only and requires a sign-in, so you would order through someone there.
+The Dutch notice texts are only partly verified: run the dry-run and look at `hints=[...]` in the watcher lines, then adjust
+`unavailable_phrases` (set `alert_on_first_check: false` while the phrases are unconfirmed). Denmark has no Sony shop (Sony's
+Danish buy-now page only points to retailers), so there is no official page to watch there. To add another country, take the
+URL from the real Direct page of that country, never guess it.
+
 The retailer adapters below remain in the code but are disabled in the shipped config.
 
 ## 1. What it does

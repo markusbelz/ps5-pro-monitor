@@ -203,4 +203,26 @@ def test_config_with_nothing_enabled_is_rejected(tmp_path):
 def test_shipped_config_is_valid():
     from pathlib import Path
     retailers, watchers = load_config(Path(__file__).parent.parent / "config" / "retailers.yml")
-    assert retailers == [] and len(watchers) == 2
+    assert retailers == [] and len(watchers) == 5
+
+
+def test_alert_on_first_check_can_be_disabled(tmp_path, settings):
+    from dataclasses import replace
+    quiet = replace(CFG, alert_on_first_check=False)
+    n = FakeNotifier()
+    mon = build_monitor(tmp_path, settings, Web({URL: AVAILABLE}), [], n, watchers=[quiet])
+    mon.run_once()
+    assert n.texts == []
+
+
+def test_detail_contains_hint_snippets_for_unknown_pages(tmp_path, settings):
+    nl = page("Momenteel niet beschikbaar", "Komt binnenkort")
+    summary = run(tmp_path, settings, Web({URL: nl}), FakeNotifier()).run_once()
+    detail = summary.watch_results[0].detail
+    assert "unavailable-notice=NO" in detail and "niet beschikbaar" in detail and "binnenkort" in detail
+
+
+def test_config_flag_alert_on_first_check():
+    (w,) = parse_watchers(watcher_yaml(alert_on_first_check=False))
+    assert w.alert_on_first_check is False
+    assert parse_watchers(watcher_yaml())[0].alert_on_first_check is True

@@ -57,6 +57,7 @@ class WatcherConfig:
     url: str
     allowed_hosts: tuple[str, ...]  # hosts this page (and its redirects) may use
     unavailable_phrases: tuple[str, ...]  # lower-case phrases shown while the product is unavailable
+    alert_on_first_check: bool = True  # heads-up if no notice is present on the very first check
 
 
 def _bool(raw: str | None, default: bool) -> bool:
@@ -256,6 +257,7 @@ def parse_watchers(data: object) -> list[WatcherConfig]:
             WatcherConfig(
                 name=name, url=url, allowed_hosts=tuple(hosts),
                 unavailable_phrases=tuple(" ".join(p.lower().split()) for p in phrases),
+                alert_on_first_check=bool(raw.get("alert_on_first_check", True)),
             )
         )
     if problems:

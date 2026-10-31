@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -40,6 +41,24 @@ def visible_text(html: str) -> str:
         tag.decompose()
     text = soup.get_text(" ")
     return " ".join(text.replace("\xa0", " ").replace("’", "'").lower().split())
+
+
+_HINT = re.compile(
+    r"niet beschikbaar|niet op voorraad|uitverkocht|voorraad|binnenkort|beschikbaar|ikke på lager|udsolgt|"
+    r"ikke tilgængelig|tilgængelig|nicht (?:zum kauf )?(?:erhältlich|verfügbar|vorrätig)|vorrätig|ausverkauft|"
+    r"indisponible|rupture|épuisé|non disponibile|esaurito|no disponible|agotado|"
+    r"not available|unavailable|out of stock|sold out|coming soon"
+)
+
+
+def hint_snippets(text: str, limit: int = 8) -> list[str]:
+    """Short excerpts around availability-related words, to help choosing phrases for a new page."""
+    found: dict[str, str] = {}
+    for m in _HINT.finditer(text):
+        found.setdefault(m.group(0), text[max(0, m.start() - 35): m.end() + 35])
+        if len(found) >= limit:
+            break
+    return list(found.values())
 
 
 def state_key(cfg: WatcherConfig) -> str:
@@ -74,11 +93,14 @@ def check_watcher(cfg: WatcherConfig, fetcher: Fetcher, prev: dict[str, Any] | N
 
     unavailable = bool(present)
     state = {"unavailable": unavailable, "final": final_short}
-    detail = f"unavailable-notice={'yes' if unavailable else 'NO'} phrases={present} page={final_short} chars={len(text)}"
+    detail = (
+        f"unavailable-notice={'yes' if unavailable else 'NO'} phrases={present} page={final_short} chars={len(text)}"
+        f" hints={hint_snippets(text)}"
+    )
 
     alert = None
     if prev is None:
-        if not unavailable:
+        if not unavailable and cfg.alert_on_first_check:
             alert = _message(cfg, cfg.url, now, "First check: none of the 'currently unavailable' notices "
                              "is on the page. Either it is purchasable now or the notice is not visible to the monitor.")
     elif prev.get("unavailable") and not unavailable:
