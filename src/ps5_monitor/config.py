@@ -34,6 +34,7 @@ class Settings:
     health_summary_hour: int = 8
     http_timeout: float = 15.0
     http_max_retries: int = 3
+    http_host_delay: float = 1.0
     respect_robots: bool = True
     log_level: str = "INFO"
     log_format: str = "json"
@@ -58,6 +59,7 @@ class WatcherConfig:
     allowed_hosts: tuple[str, ...]  # hosts this page (and its redirects) may use
     unavailable_phrases: tuple[str, ...]  # lower-case phrases shown while the product is unavailable
     alert_on_first_check: bool = True  # heads-up if no notice is present on the very first check
+    note: str = ""  # free text appended to the alert (e.g. shipping restrictions of that country)
 
 
 def _bool(raw: str | None, default: bool) -> bool:
@@ -112,6 +114,7 @@ def load_settings(env: Mapping[str, str] | None = None, *, require_telegram: boo
 
     timeout = number("HTTP_TIMEOUT", 15.0, low=1, high=120)
     retries = number("HTTP_MAX_RETRIES", 3, integer=True, low=1, high=6)
+    host_delay = number("HTTP_HOST_DELAY", 1.0, low=0, high=30)
     hour = number("HEALTH_SUMMARY_HOUR", 8, integer=True, low=0, high=23)
 
     try:
@@ -149,6 +152,7 @@ def load_settings(env: Mapping[str, str] | None = None, *, require_telegram: boo
         health_summary_hour=int(hour),
         http_timeout=float(timeout),
         http_max_retries=int(retries),
+        http_host_delay=float(host_delay),
         respect_robots=robots,
         log_level=log_level,
         log_format=log_format,
@@ -258,6 +262,7 @@ def parse_watchers(data: object) -> list[WatcherConfig]:
                 name=name, url=url, allowed_hosts=tuple(hosts),
                 unavailable_phrases=tuple(" ".join(p.lower().split()) for p in phrases),
                 alert_on_first_check=bool(raw.get("alert_on_first_check", True)),
+                note=str(raw.get("note") or "").strip(),
             )
         )
     if problems:

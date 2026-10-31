@@ -84,7 +84,10 @@ def main(argv: list[str] | None = None) -> int:
     storage = Storage(settings.db_path)
     client = make_client(settings.http_timeout)
     try:
-        fetcher = Fetcher(client, max_attempts=settings.http_max_retries, respect_robots=settings.respect_robots)
+        fetcher = Fetcher(
+            client, max_attempts=settings.http_max_retries, respect_robots=settings.respect_robots,
+            host_delay=settings.http_host_delay,
+        )
         notifier = _notifier(settings) if settings.telegram_token and settings.telegram_chat_id else None
         monitor = Monitor(settings, retailers, fetcher, storage, notifier, watchers=watchers)
 

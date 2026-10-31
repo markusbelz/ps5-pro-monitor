@@ -203,7 +203,7 @@ def test_config_with_nothing_enabled_is_rejected(tmp_path):
 def test_shipped_config_is_valid():
     from pathlib import Path
     retailers, watchers = load_config(Path(__file__).parent.parent / "config" / "retailers.yml")
-    assert retailers == [] and len(watchers) == 5
+    assert retailers == [] and len(watchers) == 14
 
 
 def test_alert_on_first_check_can_be_disabled(tmp_path, settings):
@@ -226,3 +226,16 @@ def test_config_flag_alert_on_first_check():
     (w,) = parse_watchers(watcher_yaml(alert_on_first_check=False))
     assert w.alert_on_first_check is False
     assert parse_watchers(watcher_yaml())[0].alert_on_first_check is True
+
+
+def test_watcher_note_is_parsed_and_in_message():
+    from ps5_monitor.config import parse_watchers
+    from ps5_monitor.watcher import _message
+    from datetime import datetime, timezone
+    (cfg,) = parse_watchers({"watchers": [{
+        "name": "X", "url": "https://www.playstation.com/nl-nl/ps5/ps5-pro/buy-now/",
+        "allowed_hosts": ["playstation.com"], "unavailable_phrases": ["uitverkocht"],
+        "note": "nur lokal",
+    }]})
+    assert cfg.note == "nur lokal"
+    assert "nur lokal" in _message(cfg, cfg.url, datetime.now(timezone.utc), "x")

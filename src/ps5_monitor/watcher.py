@@ -109,11 +109,13 @@ def check_watcher(cfg: WatcherConfig, fetcher: Fetcher, prev: dict[str, Any] | N
 
 
 def _message(cfg: WatcherConfig, url: str, now: datetime, what: str) -> str:
+    note = f"\nHinweis: {cfg.note}\n" if cfg.note else ""
     return (
         "🚨 PS5 PRO: POSSIBLY AVAILABLE (unverified heads-up)\n\n"
         f"Source: {cfg.name}\n"
         f"{what}\n"
-        f"Last checked: {berlin_time(now)}\n\n"
+        f"Last checked: {berlin_time(now)}\n"
+        f"{note}\n"
         "This is an early signal from an official page. Price, stock and seller are NOT verified. Open it now:\n"
         f"{url}"
     )

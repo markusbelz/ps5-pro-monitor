@@ -116,13 +116,14 @@ class Monitor:
                 self.storage.record_retailer(result, now)
             for offer in result.offers:
                 self._handle_offer(offer, retailer.cfg, summary, dry_run)
+        alerted_pages: set[str] = set()
         for watcher in self.watchers:
-            self._handle_watcher(watcher, summary, dry_run)
+            self._handle_watcher(watcher, summary, dry_run, alerted_pages)
         if not dry_run:
             self.storage.prune_history(self.clock())
         return summary
 
-    def _handle_watcher(self, cfg: WatcherConfig, summary: RunSummary, dry_run: bool) -> None:
+    def _handle_watcher(self, cfg: WatcherConfig, summary: RunSummary, dry_run: bool, alerted_pages: set[str]) -> None:
         now = self.clock()
         prev = load_state(self.storage.get_meta(state_key(cfg)))
         result = check_watcher(cfg, self.fetcher, prev, now)
@@ -140,9 +141,13 @@ class Monitor:
             return
         if dry_run:
             return
-        if result.alert and self.notifier is not None:
+        page = result.new_state.get("final", "")
+        if result.alert and page in alerted_pages:
+            log.info("duplicate watcher alert suppressed (same page already reported)", extra={"watcher": cfg.name})
+        elif result.alert and self.notifier is not None:
             try:
                 self.notifier.send_text(result.alert)
+                alerted_pages.add(page)
                 summary.notified += 1
                 log.info("watcher notification sent", extra={"watcher": cfg.name})
             except NotificationError as exc:

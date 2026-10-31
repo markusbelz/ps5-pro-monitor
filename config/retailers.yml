@@ -22,38 +22,140 @@ watchers:
       - "sie können diese artikel derzeit nicht kaufen"
   - name: "PlayStation.com DE - PS5 Pro Kaufseite"
     url: "https://www.playstation.com/de-de/ps5/ps5-pro/buy-now/"
-    allowed_hosts: ["playstation.com", "direct.playstation.com"]
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
     unavailable_phrases:
       - "nicht zum kauf erhältlich"
       - "derzeit nicht vorrätig"
 
-  # --- Netherlands (family): PlayStation Direct NL ships to Dutch addresses only and needs a sign-in.
-  # The 2 TB page redirects to the NL buy-now page while unavailable (same pattern as Germany).
-  # Dutch notice texts below are only partly verified: check the dry-run output ("hints=") and adjust.
-  - name: "PlayStation Direct NL - PS5 Pro (overzicht)"
-    url: "https://direct.playstation.com/nl-nl/buy-consoles/playstation5-pro-console"
-    allowed_hosts: ["direct.playstation.com", "playstation.com"]
-    alert_on_first_check: false
-    unavailable_phrases:
-      - "momenteel niet beschikbaar"
-      - "komt binnenkort"
+  # --- Europe radar: official Sony pages. PlayStation Direct ships ONLY within its own country, needs a
+  # sign-in and a local recipient. Phrases are partly unverified: run a dry-run and check 'hints='.
   - name: "PlayStation Direct NL - PS5 Pro 2 TB"
     url: "https://direct.playstation.com/nl-nl/buy-consoles/playstation5-pro-console-2-tb"
     allowed_hosts: ["direct.playstation.com", "playstation.com"]
     alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
     unavailable_phrases:
       - "momenteel niet beschikbaar"
       - "niet beschikbaar voor aankoop"
+      - "op dit moment uitverkocht"
       - "momenteel niet op voorraad"
       - "niet op voorraad"
       - "komt binnenkort"
-  - name: "PlayStation.com NL - PS5 Pro Kaufseite"
+  - name: "PlayStation.com NL - Kaufseite"
     url: "https://www.playstation.com/nl-nl/ps5/ps5-pro/buy-now/"
-    allowed_hosts: ["playstation.com", "direct.playstation.com"]
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
     alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
     unavailable_phrases:
       - "momenteel niet beschikbaar"
       - "niet beschikbaar voor aankoop"
+      - "op dit moment uitverkocht"
       - "momenteel niet op voorraad"
       - "niet op voorraad"
       - "komt binnenkort"
+  - name: "PlayStation Direct FR - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/fr-fr/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "actuellement indisponible"
+      - "momentanément indisponible"
+      - "rupture de stock"
+      - "indisponible à l'achat"
+      - "non disponible à l'achat"
+  - name: "PlayStation Direct IT - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/it-it/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "attualmente non disponibile"
+      - "non disponibile per l'acquisto"
+      - "esaurito"
+      - "non disponibile al momento"
+  - name: "PlayStation Direct ES - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/es-es/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "no disponible actualmente"
+      - "actualmente no disponible"
+      - "no disponible para la compra"
+      - "agotado"
+      - "sin existencias"
+  - name: "PlayStation Direct AT - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/de-at/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "derzeit nicht vorrätig"
+      - "zurzeit nicht verfügbar"
+      - "nicht zum kauf erhältlich"
+      - "derzeit nicht verfügbar"
+  - name: "PlayStation.com AT - Kaufseite"
+    url: "https://www.playstation.com/de-at/ps5/ps5-pro/buy-now/"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "derzeit nicht vorrätig"
+      - "zurzeit nicht verfügbar"
+      - "nicht zum kauf erhältlich"
+      - "derzeit nicht verfügbar"
+  - name: "PlayStation.com PT - Kaufseite"
+    url: "https://www.playstation.com/pt-pt/ps5/ps5-pro/buy-now/"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "indisponível"
+      - "não disponível para compra"
+      - "esgotado"
+      - "atualmente indisponível"
+  - name: "PlayStation Direct BE (nl) - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/nl-be/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "momenteel niet beschikbaar"
+      - "niet beschikbaar voor aankoop"
+      - "op dit moment uitverkocht"
+      - "momenteel niet op voorraad"
+      - "niet op voorraad"
+      - "komt binnenkort"
+  - name: "PlayStation Direct BE (fr) - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/fr-be/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "actuellement indisponible"
+      - "momentanément indisponible"
+      - "rupture de stock"
+      - "indisponible à l'achat"
+      - "non disponible à l'achat"
+  - name: "PlayStation Direct LU (fr) - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/fr-lu/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "actuellement indisponible"
+      - "momentanément indisponible"
+      - "rupture de stock"
+      - "indisponible à l'achat"
+      - "non disponible à l'achat"
+  - name: "PlayStation Direct LU (de) - PS5 Pro 2 TB"
+    url: "https://direct.playstation.com/de-lu/buy-consoles/playstation5-pro-console-2-tb"
+    allowed_hosts: ["direct.playstation.com", "playstation.com"]
+    alert_on_first_check: false
+    note: "Direct liefert nur innerhalb des Landes (Konto + lokaler Empfänger nötig)."
+    unavailable_phrases:
+      - "derzeit nicht vorrätig"
+      - "zurzeit nicht verfügbar"
+      - "nicht zum kauf erhältlich"
+      - "derzeit nicht verfügbar"

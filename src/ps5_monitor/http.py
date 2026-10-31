@@ -72,7 +72,12 @@ class Fetcher:
         backoff_base: float = 1.0,
         respect_robots: bool = True,
         sleep: Callable[[float], None] = time.sleep,
+        host_delay: float = 0.0,
+        clock: Callable[[], float] = time.monotonic,
     ):
+        self._host_delay = host_delay
+        self._clock = clock
+        self._last_request: dict[str, float] = {}
         self._client = client
         self._max_attempts = max_attempts
         self._backoff_base = backoff_base
@@ -109,9 +114,20 @@ class Fetcher:
             return Page(final_url=current, text=response.text)
         raise FetchError("too many redirects")
 
+    def _pace(self, url: str) -> None:
+        """Keep at least host_delay seconds between two requests to the same host."""
+        if self._host_delay <= 0:
+            return
+        host = urlsplit(url).netloc
+        wait = self._last_request.get(host, -1e9) + self._host_delay - self._clock()
+        if wait > 0:
+            self._sleep(wait)
+        self._last_request[host] = self._clock()
+
     def _request(self, url: str) -> httpx.Response:
         last = "unknown error"
         for attempt in range(1, self._max_attempts + 1):
+            self._pace(url)
             delay = min(self._backoff_base * 2 ** (attempt - 1), 30.0)
             try:
                 response = self._client.get(url)
