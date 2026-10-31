@@ -79,10 +79,10 @@ def check_watcher(cfg: WatcherConfig, fetcher: Fetcher, prev: dict[str, Any] | N
     alert = None
     if prev is None:
         if not unavailable:
-            alert = _message(cfg, page.final_url, now, "First check: none of the 'currently unavailable' notices "
+            alert = _message(cfg, cfg.url, now, "First check: none of the 'currently unavailable' notices "
                              "is on the page. Either it is purchasable now or the notice is not visible to the monitor.")
     elif prev.get("unavailable") and not unavailable:
-        alert = _message(cfg, page.final_url, now, "The 'currently unavailable' notice has disappeared from this page.")
+        alert = _message(cfg, cfg.url, now, "The 'currently unavailable' notice has disappeared from this page.")
     return WatchResult(cfg.name, Outcome.OK, alert=alert, new_state=state, detail=detail)
 
 
