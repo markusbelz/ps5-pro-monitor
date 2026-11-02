@@ -4,7 +4,9 @@ on:
   schedule:
     # Best effort only: GitHub may delay or skip scheduled runs, especially at busy times.
     # Do not rely on exact spacing. Public repo = free minutes; see README for private repos.
-    - cron: "*/15 * * * *"
+    # Each run keeps checking for ~14 minutes (every ~20 s); runs are queued back to back by the
+    # concurrency group, so coverage is nearly continuous even if GitHub delays a start.
+    - cron: "*/10 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -24,7 +26,7 @@ permissions:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 18
     env:
       MODE: ${{ github.event.inputs.mode || 'run' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -63,7 +65,8 @@ jobs:
         run: |
           case "$MODE" in
             dry-run) python -m ps5_monitor run --dry-run ;;
-            run|test-notify|health) python -m ps5_monitor "$MODE" ;;
+            run) python -m ps5_monitor run --loop-seconds 840 --interval 20 ;;
+            test-notify|health) python -m ps5_monitor "$MODE" ;;
             *) echo "unknown mode: $MODE"; exit 2 ;;
           esac
 

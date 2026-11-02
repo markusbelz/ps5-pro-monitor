@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
 
 from .config import ConfigError, Settings, load_config, load_settings
 from .http import Fetcher, make_client
@@ -22,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="check all enabled retailers once and notify on new opportunities")
     run.add_argument("--dry-run", action="store_true", help="check and evaluate, but send nothing and write no state")
+    run.add_argument("--loop-seconds", type=float, default=0.0,
+                     help="keep checking for this many seconds instead of once (a new check starts every --interval)")
+    run.add_argument("--interval", type=float, default=20.0, help="minimum seconds between check starts in loop mode")
     sub.add_parser("test-notify", help="send a test message to Telegram")
     sub.add_parser("check-config", help="validate configuration and list retailers")
     sub.add_parser("health", help="send the health summary now")
@@ -99,7 +103,21 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             return 0
 
-        summary = monitor.run_once(dry_run=args.dry_run)
+        if args.loop_seconds > 0 and not args.dry_run:
+            deadline = time.monotonic() + args.loop_seconds
+            rounds = 0
+            while True:
+                started = time.monotonic()
+                summary = monitor.run_once(dry_run=False)
+                rounds += 1
+                if started + args.interval >= deadline:
+                    break
+                time.sleep(max(0.0, started + args.interval - time.monotonic()))
+                if time.monotonic() >= deadline:
+                    break
+            print(f"loop finished after {rounds} round(s)")
+        else:
+            summary = monitor.run_once(dry_run=args.dry_run)
         for line in summary.lines():
             print(line)
         if args.dry_run:

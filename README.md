@@ -28,6 +28,10 @@ Telegram message *"PS5 PRO: POSSIBLY AVAILABLE (unverified heads-up)"* with the 
 * If the notice is not on the page at the very first check, you get one heads-up ("either purchasable now or the notice is not visible to the monitor"). The dry-run output shows which phrases were found (`phrases=[...]`); if none are found although the page shows the notice, the text is probably rendered by JavaScript and this watcher cannot see it.
 * Phrases are matched against visible text only (scripts/styles ignored). Add watchers for other official pages with `name`, `url`, `allowed_hosts`, `unavailable_phrases`.
 
+**Fast checks.** GitHub cron cannot run more often than every 5 minutes and often starts late. So each scheduled run
+(every 10 min) keeps checking in a loop for ~14 minutes (`run --loop-seconds 840 --interval 20`, one round about every
+20-40 s); the concurrency group queues the next run right behind it. Free for public repos. Manual `dry-run` stays a single pass.
+
 **Europe radar.** Stock is separate per country. Besides Germany the config watches the official Sony pages for NL, FR, IT, ES,
 AT, PT, BE (nl/fr) and LU (fr/de). Caveats: PlayStation Direct ships only within its own country, requires a sign-in/account
 and a local recipient (alerts carry that as a `note`). Phrases for non-German locales are partly unverified: run a dry-run,

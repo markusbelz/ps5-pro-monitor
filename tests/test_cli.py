@@ -73,3 +73,31 @@ def test_dry_run_needs_no_telegram_credentials(env, monkeypatch):
 def test_missing_credentials_exit_code_2(env, monkeypatch):
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN")
     assert cli.main(["test-notify"]) == 2
+
+
+def test_loop_mode_runs_multiple_rounds(monkeypatch):
+    from ps5_monitor import main as main_mod
+
+    calls = []
+
+    class FakeSummary:
+        exit_code = 0
+        would_notify = 0
+        def lines(self): return []
+
+    class FakeMonitor:
+        def __init__(self, *a, **k): pass
+        def run_once(self, dry_run=False):
+            calls.append(dry_run)
+            return FakeSummary()
+        def maybe_send_health_summary(self, force=False): pass
+
+    monkeypatch.setattr(main_mod, "Monitor", FakeMonitor)
+    monkeypatch.setattr(main_mod.time, "sleep", lambda s: None)
+    ticks = iter(range(0, 1000, 5))
+    monkeypatch.setattr(main_mod.time, "monotonic", lambda: float(next(ticks)))
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "1")
+    monkeypatch.setenv("DB_PATH", ":memory:")
+    rc = main_mod.main(["run", "--loop-seconds", "60", "--interval", "10"])
+    assert rc == 0 and len(calls) > 1 and not any(calls)
