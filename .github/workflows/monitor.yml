@@ -85,7 +85,15 @@ jobs:
           git add ps5_monitor.db
           git commit -q -m "state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           # A single orphan commit that is force-pushed every time: no history growth, no secrets inside.
-          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" state
+          # GitHub occasionally answers with a transient 5xx. Retry; if it still fails, warn instead of
+          # failing the run (the state only prevents repeat alerts, the monitoring itself already finished).
+          for attempt in 1 2 3 4; do
+            if git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" state; then
+              echo "State saved."; exit 0
+            fi
+            echo "State push failed (attempt $attempt), retrying..."; sleep $((attempt * 5))
+          done
+          echo "::warning::Could not save state after 4 attempts; the next run restores the previous state."
 
       - name: Report result
         if: ${{ steps.monitor.outcome == 'failure' }}
