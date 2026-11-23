@@ -32,11 +32,8 @@ Telegram message *"PS5 PRO: POSSIBLY AVAILABLE (unverified heads-up)"* with the 
 (every 10 min) keeps checking in a loop for ~14 minutes (`run --loop-seconds 840 --interval 20`, one round about every
 20-40 s); the concurrency group queues the next run right behind it. Free for public repos. Manual `dry-run` stays a single pass.
 
-**Coolblue / Galaxus (experimental).** Coolblue DE and Galaxus DE deliver to Germany themselves and are checked as retailers
-(only offers sold by the retailer itself; shipping is declared as free in the config). Whether their pages expose readable
-product data from GitHub runners is unverified: run a dry-run and check the retailer lines. `NO_DATA`/`BLOCKED` means
-the page was not readable and never sends an alert. Deal feeds (mydealz, Tweakers) were evaluated but are not included:
-they could not be reached from the build environment and mydealz offers no search feeds.
+**Coolblue DE.** Checked as a retailer: readable from GitHub runners (price and stock found), only offers sold by Coolblue itself qualify, shipping declared as free in the config. Galaxus DE blocks GitHub runners with a bot-protection page and is therefore disabled (never worked around).
+Deal feeds (mydealz, Tweakers) were evaluated but are not included: they could not be reached from the build environment and mydealz offers no search feeds.
 
 **Europe radar.** Stock is separate per country. Besides Germany the config watches the official Sony pages for NL, FR, IT, ES,
 AT, PT, BE (nl/fr) and LU (fr/de). Caveats: PlayStation Direct ships only within its own country, requires a sign-in/account

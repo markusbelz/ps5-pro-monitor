@@ -92,3 +92,13 @@ def test_coolblue_offer_is_parsed_from_jsonld():
 def test_coolblue_page_without_structured_data_is_no_data_not_an_alert():
     url = "https://www.coolblue.de/en/product/954519/playstation-5-pro-digital-edition.html"
     assert check("coolblue", url, fixture("no_jsonld.html")).outcome is Outcome.NO_DATA
+
+
+def test_coolblue_offer_without_seller_counts_as_coolblue():
+    url = "https://www.coolblue.de/en/product/954519/playstation-5-pro-digital-edition.html"
+    html = fixture("coolblue_in_stock.html").replace(
+        '"seller": {\n      "@type": "Organization",\n      "name": "Coolblue"\n    }', '"x": 1'
+    )
+    assert '"seller"' not in html
+    (offer,) = check("coolblue", url, html, shipping=Decimal("0")).offers
+    assert offer.seller == "Coolblue"
