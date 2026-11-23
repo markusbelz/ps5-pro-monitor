@@ -163,3 +163,14 @@ watchers:
       - "zurzeit nicht verfügbar"
       - "nicht zum kauf erhältlich"
       - "derzeit nicht verfügbar"
+
+  # --- Refurbished shops. refurbed.de is a marketplace of verified EU traders: prices and sellers vary, so
+  # this is only a heads-up. Check price (limit 1200 EUR incl. shipping), grade and seller on the page.
+  - name: "refurbed.de - PS5 Pro 2 TB (refurbished)"
+    url: "https://www.refurbed.de/p/sony-playstation-5-pro/"
+    allowed_hosts: ["refurbed.de"]
+    alert_on_first_check: false
+    note: "Refurbished-Marktplatz: Preis (max. 1200 EUR inkl. Versand), Zustand und Verkäufer auf der Seite prüfen."
+    unavailable_phrases:
+      - "produkt im moment ausverkauft"
+      - "product is currently out of stock"
