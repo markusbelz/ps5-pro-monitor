@@ -203,7 +203,7 @@ def test_config_with_nothing_enabled_is_rejected(tmp_path):
 def test_shipped_config_is_valid():
     from pathlib import Path
     retailers, watchers = load_config(Path(__file__).parent.parent / "config" / "retailers.yml")
-    assert {r.key for r in retailers} == {"coolblue"} and len(watchers) == 18
+    assert {r.key for r in retailers} == {"coolblue"} and len(watchers) == 16
 
 
 def test_alert_on_first_check_can_be_disabled(tmp_path, settings):
