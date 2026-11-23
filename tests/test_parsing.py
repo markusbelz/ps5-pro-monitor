@@ -76,3 +76,19 @@ def test_amazon_is_an_unsupported_placeholder():
 def test_no_data_error_contains_diagnostics():
     result = check("playstation_direct", PS_URL, fixture("no_jsonld.html"))
     assert "page title='Layout changed'" in result.error and "ld+json types=[]" in result.error
+
+
+def test_coolblue_and_galaxus_are_registered_with_own_hosts_and_sellers():
+    assert REGISTRY["coolblue"].allowed_hosts == ("coolblue.de",)
+    assert REGISTRY["galaxus"].default_sellers == ("Galaxus",)
+
+
+def test_coolblue_offer_is_parsed_from_jsonld():
+    url = "https://www.coolblue.de/en/product/954519/playstation-5-pro-digital-edition.html"
+    (offer,) = check("coolblue", url, fixture("coolblue_in_stock.html"), shipping=Decimal("0")).offers
+    assert offer.seller == "Coolblue" and offer.price == Decimal("899.99") and offer.shipping == Decimal("0.00")
+
+
+def test_coolblue_page_without_structured_data_is_no_data_not_an_alert():
+    url = "https://www.coolblue.de/en/product/954519/playstation-5-pro-digital-edition.html"
+    assert check("coolblue", url, fixture("no_jsonld.html")).outcome is Outcome.NO_DATA

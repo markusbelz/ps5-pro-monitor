@@ -2,14 +2,16 @@
 
 from .amazon import Amazon
 from .base import Retailer
+from .coolblue import Coolblue
 from .expert import Expert
+from .galaxus import Galaxus
 from .mediamarkt import MediaMarkt
 from .playstation_direct import PlayStationDirect
 from .saturn import Saturn
 
 # Order = priority order (PlayStation Direct first).
 REGISTRY: dict[str, type[Retailer]] = {
-    cls.key: cls for cls in (PlayStationDirect, MediaMarkt, Saturn, Amazon, Expert)
+    cls.key: cls for cls in (PlayStationDirect, MediaMarkt, Saturn, Amazon, Expert, Coolblue, Galaxus)
 }
 
 __all__ = ["REGISTRY", "Retailer"]
