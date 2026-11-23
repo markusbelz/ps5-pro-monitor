@@ -31,7 +31,7 @@ jobs:
       MODE: ${{ github.event.inputs.mode || 'run' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      MAX_PRICE_EUR: ${{ vars.MAX_PRICE_EUR || '999.99' }}
+      MAX_PRICE_EUR: ${{ vars.MAX_PRICE_EUR || '1200.00' }}
       HEALTH_SUMMARY: ${{ vars.HEALTH_SUMMARY || 'false' }}
       DB_PATH: state/ps5_monitor.db
     steps:
