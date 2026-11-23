@@ -174,3 +174,28 @@ watchers:
     unavailable_phrases:
       - "produkt im moment ausverkauft"
       - "product is currently out of stock"
+  - name: "asgoodasnew.de - PS5 Pro (refurbished)"
+    url: "https://asgoodasnew.de/Sony-PlayStation-5-Pro-weiss.html"
+    allowed_hosts: ["asgoodasnew.de"]
+    alert_on_first_check: false
+    note: "Refurbished-Shop: Zustand (neu/wie neu/sehr gut/gut/budget), Preis (max. 1200 EUR inkl. Versand) auf der Seite prüfen."
+    unavailable_phrases:
+      - "benachrichtigung, wenn der artikel wieder verfügbar ist"
+  # rebuy / Back Market: unavailable wording not yet known. Phrases below are guesses; the dry-run
+  # prints hints=[...] with the real wording, then they get corrected. Until then they cannot alert.
+  - name: "rebuy.de - PS5 Pro 2 TB (refurbished)"
+    url: "https://www.rebuy.de/i,15518800/playstation-5/sony-playstation-5-pro-2tb-digitale-version-inkl-dualsense-wireless-controller-wei"
+    allowed_hosts: ["rebuy.de"]
+    alert_on_first_check: false
+    note: "Refurbished-Shop: Zustand und Preis (max. 1200 EUR inkl. Versand) auf der Seite prüfen."
+    unavailable_phrases:
+      - "derzeit nicht verfügbar"
+      - "nicht verfügbar"
+  - name: "Back Market DE - PS5 Pro (refurbished)"
+    url: "https://www.backmarket.de/de-de/p/playstation-5-pro"
+    allowed_hosts: ["backmarket.de"]
+    alert_on_first_check: false
+    note: "Refurbished-Marktplatz: Zustand, Verkäufer und Preis (max. 1200 EUR inkl. Versand) auf der Seite prüfen."
+    unavailable_phrases:
+      - "derzeit nicht verfügbar"
+      - "nicht verfügbar"
